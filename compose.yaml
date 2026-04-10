@@ -7,8 +7,7 @@ services:
     restart: unless-stopped
     env_file: .env
     volumes:
-      - .:/var/www/html
-      - ./database:/var/www/html/database
+      - ./tudo:/var/www/html
     networks:
       - bookshelf
 
@@ -19,7 +18,7 @@ services:
     ports:
       - "8000:80"
     volumes:
-      - .:/var/www/html
+      - ./tudo:/var/www/html
       - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - app
