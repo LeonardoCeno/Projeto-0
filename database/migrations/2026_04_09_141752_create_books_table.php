@@ -1,0 +1,29 @@
+<?php
+
+use App\Enums\BookStatus;
+use App\Models\Genre;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('books', function (Blueprint $table) {
+            $table->id();
+            $table->foreignIdFor(Genre::class)->constrained()->cascadeOnDelete();
+            $table->string('title');
+            $table->string('author');
+            $table->unsignedInteger('pages')->nullable();
+            $table->enum('status', BookStatus::values())->default(BookStatus::ToRead->value);
+            $table->unsignedTinyInteger('rating')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('books');
+    }
+};
