@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookShelf — API Tester</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=JetBrains+Mono:wght@400;500&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:         #0d0904;
+            --surface:    #1a1108;
+            --surface-2:  #241a0e;
+            --border:     #3a2510;
+            --border-2:   #4d3318;
+            --gold:       #c8962a;
+            --gold-hi:    #e8b840;
+            --cream:      #f0e0c0;
+            --cream-dim:  #a08060;
+            --muted:      #604830;
+            --red:        #8b3030;
+            --red-hi:     #c04040;
+            --green:      #2d6b45;
+            --green-hi:   #3d9b65;
+            --mono: 'JetBrains Mono', monospace;
+            --serif: 'Playfair Display', serif;
+            --body: 'Crimson Pro', Georgia, serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--cream);
+            font-family: var(--body);
+            font-size: 16px;
+            line-height: 1.5;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Header ── */
+        header {
+            padding: 14px 28px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: linear-gradient(180deg, #1c1008 0%, transparent 100%);
+            flex-shrink: 0;
+        }
+
+        header h1 {
+            font-family: var(--serif);
+            font-size: 22px;
+            color: var(--gold-hi);
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+        }
+
+        .url-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            max-width: 380px;
+        }
+
+        .url-bar label {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--muted);
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+        }
+
+        .url-bar input {
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border-2);
+            color: var(--cream);
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            outline: none;
+            transition: border-color .15s;
+        }
+
+        .url-bar input:focus { border-color: var(--gold); }
+
+        /* ── Main grid ── */
+        main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 220px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ── Panels ── */
+        .panel {
+            padding: 20px 22px;
+            overflow-y: auto;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .panel-title {
+            font-family: var(--serif);
+            font-size: 20px;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .count-badge {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--muted);
+            background: var(--surface-2);
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            font-family: var(--body);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 13px;
+            border: 1px solid;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all .15s;
+            letter-spacing: .02em;
+            white-space: nowrap;
+        }
+
+        .btn-primary { background: var(--gold); border-color: var(--gold); color: #0d0904; }
+        .btn-primary:hover { background: var(--gold-hi); border-color: var(--gold-hi); }
+
+        .btn-ghost { background: transparent; border-color: var(--border-2); color: var(--cream-dim); }
+        .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+        .btn-sm { font-size: 12px; padding: 5px 11px; }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--cream-dim);
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+            transition: all .15s;
+            line-height: 1;
+        }
+        .icon-btn:hover          { color: var(--gold); background: var(--surface-2); }
+        .icon-btn.del:hover      { color: var(--red-hi); }
+
+        /* ── Form box ── */
+        .form-box {
+            background: var(--surface);
+            border: 1px solid var(--border-2);
+            border-radius: 6px;
+            padding: 14px 16px;
+            display: none;
+            flex-shrink: 0;
+        }
+        .form-box.open { display: block; }
+
+        .form-box h3 {
+            font-family: var(--serif);
+            font-size: 15px;
+            color: var(--gold);
+            margin-bottom: 12px;
+        }
+
+        .field { margin-bottom: 10px; }
+
+        .field label {
+            display: block;
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--cream-dim);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .field input,
+        .field textarea,
+        .field select {
+            width: 100%;
+            background: var(--surface-2);
+            border: 1px solid var(--border-2);
+            color: var(--cream);
+            font-family: var(--body);
+            font-size: 14px;
+            padding: 7px 10px;
+            border-radius: 4px;
+            outline: none;
+            transition: border-color .15s;
+        }
+        .field input:focus,
+        .field textarea:focus,
+        .field select:focus { border-color: var(--gold); }
+        .field select option  { background: var(--surface-2); }
+        .field textarea { resize: vertical; min-height: 60px; }
+
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .form-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+        /* ── Item cards ── */
+        .item-list { display: flex; flex-direction: column; gap: 7px; flex-shrink: 0; }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 11px 13px;
+            transition: border-color .15s;
+        }
+        .card:hover { border-color: var(--border-2); }
+
+        .card-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--cream);
+            line-height: 1.3;
+        }
+
+        .card-meta {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: var(--cream-dim);
+            margin-top: 4px;
+        }
+
+        .card-tags {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            font-family: var(--mono);
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            border: 1px solid;
+        }
+        .badge-to_read  { border-color: var(--muted);    color: var(--cream-dim); }
+        .badge-reading  { border-color: var(--gold);     color: var(--gold); }
+        .badge-finished { border-color: var(--green-hi); color: var(--green-hi); }
+
+        .stars { color: var(--gold); font-size: 11px; letter-spacing: 1px; }
+
+        .genre-tag {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--gold);
+            opacity: .8;
+        }
+
+        .card-actions { display: flex; gap: 2px; flex-shrink: 0; }
+
+        /* ── Empty state ── */
+        .empty {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* ── Response panel ── */
+        .response-panel {
+            grid-column: 1 / -1;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .res-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 22px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+            flex-shrink: 0;
+        }
+
+        .res-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .1em;
+        }
+
+        .res-method {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--gold-hi);
+            font-weight: 500;
+            min-width: 45px;
+        }
+
+        .res-url {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--cream-dim);
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .res-status {
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 3px;
+        }
+        .s2xx { background: var(--green); color: #c0f0d0; }
+        .s4xx, .s5xx { background: var(--red); color: #f0c0c0; }
+
+        .res-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 22px;
+            font-family: var(--mono);
+            font-size: 11.5px;
+            line-height: 1.7;
+            color: var(--cream);
+            white-space: pre;
+        }
+
+        .jk { color: #89b4fa; }
+        .js { color: #a6e3a1; }
+        .jn { color: #fab387; }
+        .jb { color: #f38ba8; }
+        .jz { color: var(--muted); }
+
+        /* ── Loading ── */
+        .spin {
+            display: inline-block;
+            width: 11px; height: 11px;
+            border: 2px solid var(--border-2);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin .6s linear infinite;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Toast ── */
+        #toasts {
+            position: fixed;
+            top: 14px; right: 14px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .toast {
+            background: var(--surface-2);
+            border: 1px solid var(--border-2);
+            color: var(--cream);
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 9px 14px;
+            border-radius: 4px;
+            animation: tin .2s ease;
+        }
+        .toast.ok  { border-left: 3px solid var(--green-hi); }
+        .toast.err { border-left: 3px solid var(--red-hi); }
+        @keyframes tin { from { transform: translateX(110%); opacity: 0; } to { transform: none; opacity: 1; } }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+
+        .divider { height: 1px; background: var(--border); flex-shrink: 0; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>📚 BookShelf</h1>
+    <div class="url-bar">
+        <label>API</label>
+        <input type="text" id="baseUrl" value="http://localhost:8000/api">
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="reloadAll()">↺ Recarregar</button>
+</header>
+
+<main>
+
+    <!-- ════ GÊNEROS ════ -->
+    <section class="panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                Gêneros
+                <span class="count-badge" id="genre-count">0</span>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="toggle('gc')">+ Novo</button>
+        </div>
+
+        <!-- criar -->
+        <div class="form-box" id="gc-form">
+            <h3>Novo Gênero</h3>
+            <div class="field"><label>name *</label><input id="gc-name" placeholder="Ex: Fantasia"></div>
+            <div class="field"><label>description</label><textarea id="gc-desc" placeholder="Opcional…"></textarea></div>
+            <div class="form-actions">
+                <button class="btn btn-primary btn-sm" onclick="createGenre()">Criar</button>
+                <button class="btn btn-ghost btn-sm" onclick="close('gc')">Cancelar</button>
+            </div>
+        </div>
+
+        <!-- editar -->
+        <div class="form-box" id="ge-form">
+            <h3>Editar Gênero</h3>
+            <input type="hidden" id="ge-id">
+            <div class="field"><label>name *</label><input id="ge-name"></div>
+            <div class="field"><label>description</label><textarea id="ge-desc"></textarea></div>
+            <div class="form-actions">
+                <button class="btn btn-primary btn-sm" onclick="updateGenre()">Salvar</button>
+                <button class="btn btn-ghost btn-sm" onclick="close('ge')">Cancelar</button>
+            </div>
+        </div>
+
+        <div class="item-list" id="genre-list">
+            <div class="empty">Clique em ↺ Recarregar para começar</div>
+        </div>
+    </section>
+
+    <!-- ════ LIVROS ════ -->
+    <section class="panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                Livros
+                <span class="count-badge" id="book-count">0</span>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="toggle('bc')">+ Novo</button>
+        </div>
+
+        <!-- criar -->
+        <div class="form-box" id="bc-form">
+            <h3>Novo Livro</h3>
+            <div class="field"><label>genre_id *</label><select id="bc-genre"></select></div>
+            <div class="two-col">
+                <div class="field"><label>title *</label><input id="bc-title" placeholder="Título"></div>
+                <div class="field"><label>author *</label><input id="bc-author" placeholder="Autor"></div>
+            </div>
+            <div class="two-col">
+                <div class="field"><label>pages</label><input id="bc-pages" type="number" min="1" placeholder="Ex: 320"></div>
+                <div class="field"><label>rating (1–5)</label><input id="bc-rating" type="number" min="1" max="5" placeholder="1–5"></div>
+            </div>
+            <div class="field">
+                <label>status</label>
+                <select id="bc-status">
+                    <option value="to_read">to_read</option>
+                    <option value="reading">reading</option>
+                    <option value="finished">finished</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary btn-sm" onclick="createBook()">Criar</button>
+                <button class="btn btn-ghost btn-sm" onclick="close('bc')">Cancelar</button>
+            </div>
+        </div>
+
+        <!-- editar -->
+        <div class="form-box" id="be-form">
+            <h3>Editar Livro</h3>
+            <input type="hidden" id="be-id">
+            <div class="field"><label>genre_id *</label><select id="be-genre"></select></div>
+            <div class="two-col">
+                <div class="field"><label>title *</label><input id="be-title"></div>
+                <div class="field"><label>author *</label><input id="be-author"></div>
+            </div>
+            <div class="two-col">
+                <div class="field"><label>pages</label><input id="be-pages" type="number" min="1"></div>
+                <div class="field"><label>rating (1–5)</label><input id="be-rating" type="number" min="1" max="5"></div>
+            </div>
+            <div class="field">
+                <label>status</label>
+                <select id="be-status">
+                    <option value="to_read">to_read</option>
+                    <option value="reading">reading</option>
+                    <option value="finished">finished</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary btn-sm" onclick="updateBook()">Salvar</button>
+                <button class="btn btn-ghost btn-sm" onclick="close('be')">Cancelar</button>
+            </div>
+        </div>
+
+        <div class="item-list" id="book-list">
+            <div class="empty">Clique em ↺ Recarregar para começar</div>
+        </div>
+    </section>
+
+    <!-- ════ RESPONSE ════ -->
+    <div class="response-panel">
+        <div class="res-header">
+            <span class="res-label">Resposta</span>
+            <span class="res-method" id="res-method"></span>
+            <span class="res-url"    id="res-url"></span>
+            <span class="res-status" id="res-status"></span>
+        </div>
+        <div class="res-body" id="res-body"><span class="jz">// as respostas da API aparecem aqui</span></div>
+    </div>
+</main>
+
+<div id="toasts"></div>
+
+<script>
+    let genres = [], books = [];
+
+    // ── helpers ──────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const base = () => $('baseUrl').value.replace(/\/$/, '');
+
+    function esc(s) {
+        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function toggle(id) {
+        const el = $(id + '-form');
+        el.classList.toggle('open');
+    }
+
+    function close(id) {
+        $(id + '-form').classList.remove('open');
+    }
+
+    function toast(msg, type = 'ok') {
+        const el = document.createElement('div');
+        el.className = `toast ${type}`;
+        el.textContent = msg;
+        $('toasts').appendChild(el);
+        setTimeout(() => el.remove(), 3000);
+    }
+
+    function stars(n) {
+        return n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '';
+    }
+
+    function badge(status) {
+        const labels = { to_read: 'para ler', reading: 'lendo', finished: 'lido' };
+        const s = status?.value ?? status ?? 'to_read';
+        return `<span class="badge badge-${s}">${labels[s] ?? s}</span>`;
+    }
+
+    function highlight(json) {
+        return json
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+            .replace(
+                /("(\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+                m => {
+                    if (/^"/.test(m)) return /:$/.test(m) ? `<span class="jk">${m}</span>` : `<span class="js">${m}</span>`;
+                    if (/true|false/.test(m)) return `<span class="jb">${m}</span>`;
+                    if (/null/.test(m)) return `<span class="jz">${m}</span>`;
+                    return `<span class="jn">${m}</span>`;
+                }
+            );
+    }
+
+    // ── API call ─────────────────────────────────────────────
+    async function api(method, path, body = null) {
+        const url = base() + path;
+        $('res-method').textContent = method;
+        $('res-url').textContent    = url;
+        $('res-status').textContent = '';
+        $('res-status').className   = 'res-status';
+        $('res-body').innerHTML     = '<span class="spin"></span>';
+
+        const opts = { method, headers: { 'Content-Type': 'application/json', Accept: 'application/json' } };
+        if (body) opts.body = JSON.stringify(body);
+
+        try {
+            const res  = await fetch(url, opts);
+            const text = await res.text();
+            const data = text ? JSON.parse(text) : null;
+
+            const cls = res.status < 300 ? 's2xx' : res.status < 500 ? 's4xx' : 's5xx';
+            $('res-status').textContent = res.status;
+            $('res-status').className   = `res-status ${cls}`;
+            $('res-body').innerHTML     = data !== null
+                ? highlight(JSON.stringify(data, null, 2))
+                : '<span class="jz">// 204 No Content</span>';
+
+            if (!res.ok) throw { status: res.status, data };
+            return data;
+        } catch (e) {
+            if (!e.status) {
+                $('res-body').innerHTML = `<span class="jz">// Erro de conexão: ${esc(e.message)}</span>`;
+            }
+            throw e;
+        }
+    }
+
+    // ── Genre selects ─────────────────────────────────────────
+    function fillGenreSelects() {
+        const opts = genres.map(g => `<option value="${g.id}">${g.id} — ${esc(g.name)}</option>`).join('');
+        $('bc-genre').innerHTML = opts;
+        $('be-genre').innerHTML = opts;
+    }
+
+    // ── GENRES ───────────────────────────────────────────────
+    async function loadGenres() {
+        genres = await api('GET', '/genres');
+        renderGenres();
+        fillGenreSelects();
+    }
+
+    function renderGenres() {
+        $('genre-count').textContent = genres.length;
+        const list = $('genre-list');
+        if (!genres.length) { list.innerHTML = '<div class="empty">Nenhum gênero cadastrado</div>'; return; }
+        list.innerHTML = genres.map(g => `
+            <div class="card">
+                <div class="card-row">
+                    <div>
+                        <div class="card-title">${esc(g.name)}</div>
+                        <div class="card-meta">id: ${g.id}</div>
+                        ${g.description ? `<div class="card-desc">${esc(g.description)}</div>` : ''}
+                    </div>
+                    <div class="card-actions">
+                        <button class="icon-btn" title="GET /genres/${g.id}" onclick="showGenre(${g.id})">👁</button>
+                        <button class="icon-btn" title="GET /genres/${g.id}/books" onclick="genreBooks(${g.id})">📚</button>
+                        <button class="icon-btn" title="Editar" onclick="editGenre(${g.id})">✎</button>
+                        <button class="icon-btn del" title="Excluir" onclick="deleteGenre(${g.id}, '${esc(g.name)}')">✕</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function showGenre(id) {
+        await api('GET', `/genres/${id}`);
+    }
+
+    async function genreBooks(id) {
+        await api('GET', `/genres/${id}/books`);
+    }
+
+    async function createGenre() {
+        const name = $('gc-name').value.trim();
+        const desc = $('gc-desc').value.trim();
+        if (!name) { toast('Nome é obrigatório', 'err'); return; }
+        try {
+            await api('POST', '/genres', { name, description: desc || null });
+            toast('Gênero criado!');
+            $('gc-name').value = ''; $('gc-desc').value = '';
+            close('gc'); await loadGenres();
+        } catch (e) { toast(errMsg(e), 'err'); }
+    }
+
+    function editGenre(id) {
+        const g = genres.find(x => x.id === id);
+        if (!g) return;
+        $('ge-id').value   = g.id;
+        $('ge-name').value = g.name;
+        $('ge-desc').value = g.description ?? '';
+        close('gc');
+        $('ge-form').classList.add('open');
+    }
+
+    async function updateGenre() {
+        const id   = $('ge-id').value;
+        const name = $('ge-name').value.trim();
+        const desc = $('ge-desc').value.trim();
+        if (!name) { toast('Nome é obrigatório', 'err'); return; }
+        try {
+            await api('PUT', `/genres/${id}`, { name, description: desc || null });
+            toast('Gênero atualizado!');
+            close('ge'); await loadGenres();
+        } catch (e) { toast(errMsg(e), 'err'); }
+    }
+
+    async function deleteGenre(id, name) {
+        if (!confirm(`Excluir "${name}" e todos os seus livros?`)) return;
+        try {
+            await api('DELETE', `/genres/${id}`);
+            toast('Gênero excluído!');
+            await loadGenres(); await loadBooks();
+        } catch (e) { toast(errMsg(e), 'err'); }
+    }
+
+    // ── BOOKS ────────────────────────────────────────────────
+    async function loadBooks() {
+        books = await api('GET', '/books');
+        renderBooks();
+    }
+
+    function renderBooks() {
+        $('book-count').textContent = books.length;
+        const list = $('book-list');
+        if (!books.length) { list.innerHTML = '<div class="empty">Nenhum livro cadastrado</div>'; return; }
+        list.innerHTML = books.map(b => {
+            const status = b.status?.value ?? b.status ?? 'to_read';
+            return `
+            <div class="card">
+                <div class="card-row">
+                    <div style="flex:1;min-width:0">
+                        <div class="card-title">${esc(b.title)}</div>
+                        <div class="card-meta">
+                            id: ${b.id} · ${esc(b.author)}${b.pages ? ` · ${b.pages}p` : ''}
+                        </div>
+                        <div class="card-tags">
+                            ${badge(status)}
+                            ${b.rating ? `<span class="stars">${stars(b.rating)}</span>` : ''}
+                            ${b.genre ? `<span class="genre-tag">${esc(b.genre.name)}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="icon-btn" title="GET /books/${b.id}" onclick="showBook(${b.id})">👁</button>
+                        <button class="icon-btn" title="Editar" onclick="editBook(${b.id})">✎</button>
+                        <button class="icon-btn del" title="Excluir" onclick="deleteBook(${b.id}, '${esc(b.title)}')">✕</button>
+                    </div>
+                </div>
+            </div>
+        `}).join('');
+    }
+
+    async function showBook(id) {
+        await api('GET', `/books/${id}`);
+    }
+
+    async function createBook() {
+        const body = {
+            genre_id: parseInt($('bc-genre').value),
+            title:    $('bc-title').value.trim(),
+            author:   $('bc-author').value.trim(),
+            pages:    parseInt($('bc-pages').value)  || null,
+            rating:   parseInt($('bc-rating').value) || null,
+            status:   $('bc-status').value,
+        };
+        if (!body.title || !body.author) { toast('Título e autor são obrigatórios', 'err'); return; }
+        try {
+            await api('POST', '/books', body);
+            toast('Livro criado!');
+            ['bc-title','bc-author','bc-pages','bc-rating'].forEach(id => $(id).value = '');
+            close('bc'); await loadBooks();
+        } catch (e) { toast(errMsg(e), 'err'); }
+    }
+
+    function editBook(id) {
+        const b = books.find(x => x.id === id);
+        if (!b) return;
+        const status = b.status?.value ?? b.status ?? 'to_read';
+        $('be-id').value     = b.id;
+        $('be-genre').value  = b.genre_id;
+        $('be-title').value  = b.title;
+        $('be-author').value = b.author;
+        $('be-pages').value  = b.pages ?? '';
+        $('be-rating').value = b.rating ?? '';
+        $('be-status').value = status;
+        close('bc');
+        $('be-form').classList.add('open');
+    }
+
+    async function updateBook() {
+        const id   = $('be-id').value;
+        const body = {
+            genre_id: parseInt($('be-genre').value),
+            title:    $('be-title').value.trim(),
+            author:   $('be-author').value.trim(),
+            pages:    parseInt($('be-pages').value)  || null,
+            rating:   parseInt($('be-rating').value) || null,
+            status:   $('be-status').value,
+        };
+        if (!body.title || !body.author) { toast('Título e autor são obrigatórios', 'err'); return; }
+        try {
+            await api('PUT', `/books/${id}`, body);
+            toast('Livro atualizado!');
+            close('be'); await loadBooks();
+        } catch (e) { toast(errMsg(e), 'err'); }
+    }
+
+    async function deleteBook(id, title) {
+        if (!confirm(`Excluir "${title}"?`)) return;
+        try {
+            await api('DELETE', `/books/${id}`);
+            toast('Livro excluído!');
+            await loadBooks();
+        } catch (e) { toast(errMsg(e), 'err'); }
+    }
+
+    // ── Utilities ────────────────────────────────────────────
+    function errMsg(e) {
+        if (!e?.data) return 'Erro desconhecido';
+        const d = e.data;
+        if (d.message) return d.message;
+        if (d.errors)  return Object.values(d.errors).flat().join(' · ');
+        return 'Erro ' + e.status;
+    }
+
+    async function reloadAll() {
+        try { await loadGenres(); } catch {}
+        try { await loadBooks();  } catch {}
+    }
+
+    reloadAll();
+</script>
+</body>
+</html>
